@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+ 
+</head>
+
+<body>
+  <input type="text" id="title" placeholder="Todo title"></input> <br /><br />
+  <input type="text" id="description" placeholder="Todo description"></input> <br /><br />
+  <button onclick="addTodo()">Add todo</button>
+  <br /> <br />
+
+  <div id="todos">
+
+  </div>
+  <script>
+    let globalId = 1;
+    let todoState = [];
+    let oldTodoState = [];
+
+    function createChild(title,description,id){
+      const child=document.createElement("div")
+      const firstGrandchildren=document.createElement("div")
+      firstGrandchildren.innerHTML=title
+      const secondGrandChildren=document.createElement("div")
+      secondGrandChildren.innerHTML=description
+      const thirdGrandChildren=document.createElement("button")
+      thirdGrandChildren.innerHTML="Mark As Done"
+      thirdGrandChildren.setAttribute("onClick",`MarkAsDone(${id})`)
+      child.appendChild(firstGrandchildren)
+      child.appendChild(secondGrandChildren)
+      child.appendChild(thirdGrandChildren)
+      child.setAttribute("id",id)
+      return child;
+
+    }
+    function MarkAsDone(todoid){
+      const parent=document.getElementById(todoid)
+      parent.children[2].innerHTML="done!"
+    }
+
+    function addTodoToDom(title,description,id) {
+      const parent=document.getElementById("todos")
+      parent.appendChild(createChild(title,description,id));
+      
+    }
+
+    function removeTodoFromDom(todo) {
+
+      const parent=document.getElementById(todo)
+      parent.remove()
+
+      
+    }
+
+    function updateTodoInDom(oldTodo, newTodo) {
+      const parent=document.getElementById(oldTodo)
+      parent.children[0].innerHTML=newTodo.title
+      parent.children[1].innerHTML=newTodo.description
+        
+    }
+
+    // function to calculate diff
+    function diffrence(todo1,todo2){
+      return todo1.filter((element)=>{
+       return !todo2.some((item)=>{return (element.id==item.id)})   
+      })
+    }
+
+    function findUpdated(oldTodoState,newTodos){
+      const updatedTodo=[]
+
+      for(newitem of newTodos){
+        const originalitem=oldTodoState.find((item)=>{return item.id==newitem.id})
+        if(originalitem){
+          if(originalitem.title!=newitem.title || originalitem.description!=newitem.description){
+            updatedTodo.push(newitem);
+          }
+        }
+      }
+      return updatedTodo;
+    }
+
+    function updateState(newTodos) {
+      // calculate the diff b/w newTodos and oldTodos.
+      // More specifically, find out what todos are - 
+      // 1. added
+      // 2. deleted
+      // 3. updated
+
+      const added =diffrence(newTodos,oldTodoState);
+      const deleted =diffrence(oldTodoState,newTodos);
+      const updated = findUpdated(oldTodoState,newTodos);
+
+      for(let i=0;i<added.length;i++){
+        addTodoToDom(added[i].title,added[i].description,added[i].id);
+      }
+      for(let i=0;i<deleted.length;i++){
+        removeTodoFromDom(deleted[i].id)
+      }
+
+      for(let i=0;i<updated.length;i++){
+        updateTodoInDom(updated[i].id,updated[i]);
+      }
+
+
+      // calculate these 3 arrays
+      // call addTodo, removeTodo, updateTodo functions on each of the
+      // elements
+      oldTodoState = newTodos;
+    }
+
+    function addTodo() {
+      const title = document.getElementById("title").value;
+      const description = document.getElementById("description").value;
+      todoState.push({
+        title: title,
+        description: description,
+        id: globalId++,
+      })
+      updateState(todoState);
+    }
+  </script>
+</body>
+
+</html>
